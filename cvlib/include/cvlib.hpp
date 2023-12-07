@@ -40,6 +40,9 @@ class motion_segmentation : public cv::BackgroundSubtractor
         backgroundImage.assign(bg_model_);
     }
 
+    void updateBackgroundModel(cv::Mat image, cv::Mat mask = cv::Mat());
+    void setVarThreshold(int th);
+
     private:
     cv::Mat bg_model_;
 };
