@@ -64,6 +64,22 @@ class corner_detector_fast : public cv::Feature2D
     virtual void detectAndCompute(cv::InputArray image, cv::InputArray mask, std::vector<cv::KeyPoint>& keypoints, cv::OutputArray descriptors,
                                   bool useProvidedKeypoints = false) override;
 
+    bool is_corner(cv::Mat& image, int i, int j, int t);
+    bool has_continuous_sequence(std::vector<int> seq);
+
+    std::vector<cv::Point> verify_pixels = {cv::Point(0, -3), cv::Point(1, -3),  cv::Point(2, -2),  cv::Point(3, -1),
+                                            cv::Point(3, 0),  cv::Point(3, 1),   cv::Point(2, 2),   cv::Point(1, 3),
+                                            cv::Point(0, 3),  cv::Point(-1, 3),  cv::Point(-2, 2),  cv::Point(-3, 1),
+                                            cv::Point(-3, 0), cv::Point(-3, -1), cv::Point(-2, -2), cv::Point(-1, -3)};
+
+    std::vector<int> first_stage_verify = {1, 5, 9, 13};
+    int first_verify_threshold = 3;
+
+    std::vector<int> second_stage_verify = {2, 3, 4, 6, 7, 8, 10, 11, 12, 14, 15, 16};
+    int second_verify_threshold = 12;
+
+    int radius = 3;
+
     /// \see Feature2d::getDefaultName
     virtual cv::String getDefaultName() const override
     {
