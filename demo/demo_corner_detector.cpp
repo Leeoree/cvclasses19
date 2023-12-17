@@ -22,7 +22,7 @@ int demo_corner_detector(int argc, char* argv[])
     cv::namedWindow(demo_wnd);
 
     cv::Mat frame;
-    auto detector = cv::GFTTDetector::create(); // \todo use cvlib::corner_detector_fast
+    auto detector = cvlib::corner_detector_fast::create();
     std::vector<cv::KeyPoint> corners;
 
     utils::fps_counter fps;
@@ -34,7 +34,12 @@ int demo_corner_detector(int argc, char* argv[])
         detector->detect(frame, corners);
         cv::drawKeypoints(frame, corners, frame, cv::Scalar(0, 0, 255));
         utils::put_fps_text(frame, fps);
-        // \todo add count of the detected corners at the top left corner of the image. Use green text color.
+
+        std::stringstream ss;
+        ss << "Detected corners: " << std::fixed << corners.size();
+
+        cv::putText(frame, ss.str(), {frame.rows / 8, frame.cols / 8}, cv::FONT_HERSHEY_PLAIN, 0.7, cv::Scalar(0, 255, 0), 1, 8, false);
+
         cv::imshow(demo_wnd, frame);
     }
 
