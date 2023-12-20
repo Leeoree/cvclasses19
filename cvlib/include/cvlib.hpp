@@ -95,12 +95,12 @@ class descriptor_matcher : public cv::DescriptorMatcher
 {
     public:
     /// \brief ctor
-    descriptor_matcher(float ratio = 1.5) : ratio_(ratio)
+    descriptor_matcher(int ratio = 1.5) : ratio_(ratio)
     {
     }
 
     /// \brief setup ratio threshold for SSD filtering
-    void set_ratio(float r)
+    void set_ratio(int r)
     {
         ratio_ = r;
     }
@@ -132,7 +132,9 @@ class descriptor_matcher : public cv::DescriptorMatcher
     }
 
     private:
-    float ratio_;
+    int ratio_;
+
+    int calc_hamming_distance(uint8_t* desc1, uint8_t* desc2, uint8_t size); // size - descriptors size in bytes
 };
 
 /// \brief Stitcher for merging images into big one
