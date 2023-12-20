@@ -7,6 +7,7 @@
 #include "cvlib.hpp"
 
 #include <ctime>
+#include <random>
 
 namespace cvlib
 {
@@ -27,9 +28,9 @@ void corner_detector_fast::detect(cv::InputArray image, CV_OUT std::vector<cv::K
     cv::GaussianBlur(_image, _image, cv::Size(5, 5), 0, 0);
     cv::copyMakeBorder(_image, _image, radius, radius, radius, radius, cv::BORDER_REPLICATE);
 
-    for (int i = 0; i < _image.rows; i++)
+    for (int i = radius; i < _image.rows - radius; i++)
     {
-        for (int j = 0; j < _image.cols; j++)
+        for (int j = radius; j < _image.cols - radius; j++)
         {
             if (is_corner(_image, i, j, t))
                 keypoints.emplace_back(cv::Point(j, i), radius + 3);
@@ -100,23 +101,71 @@ bool corner_detector_fast::has_continuous_sequence(std::vector<int> seq)
         return false;
 }
 
-void corner_detector_fast::compute(cv::InputArray, std::vector<cv::KeyPoint>& keypoints, cv::OutputArray descriptors)
+void corner_detector_fast::compute(cv::InputArray image, std::vector<cv::KeyPoint>& keypoints, cv::OutputArray descriptors)
 {
-    std::srand(unsigned(std::time(0))); // \todo remove me
-    // \todo implement any binary descriptor
-    const int desc_length = 2;
-    descriptors.create(static_cast<int>(keypoints.size()), desc_length, CV_32S);
+    cv::Mat _image;
+    image.getMat().copyTo(_image);
+    cv::cvtColor(_image, _image, cv::COLOR_BGR2GRAY);
+    cv::GaussianBlur(_image, _image, cv::Size(5, 5), 0, 0);
+
+    const int diam = 25;
+    const int desc_length = 16;
+
+    if (pixel_pairs.empty())
+    {
+        gen_pixel_pairs(diam, desc_length * 16);
+    }
+
+    descriptors.create(static_cast<int>(keypoints.size()), desc_length, CV_16U);
     auto desc_mat = descriptors.getMat();
     desc_mat.setTo(0);
 
-    int* ptr = reinterpret_cast<int*>(desc_mat.ptr());
-    for (const auto& pt : keypoints)
+    int rad = diam / 2 + 1;
+    cv::copyMakeBorder(_image, _image, rad, rad, rad, rad, cv::BORDER_REPLICATE);
+    uint16_t* ptr = reinterpret_cast<uint16_t*>(desc_mat.ptr());
+
+    uint8_t pixel_1_buf;
+    uint8_t pixel_2_buf;
+
+    for (auto featPoint : keypoints)
     {
-        for (int i = 0; i < desc_length; ++i)
+        featPoint.pt.x += rad;
+        featPoint.pt.y += rad;
+
+        int pair_idx = 0;
+        for (int desc_idx = 0; desc_idx < desc_length; desc_idx++)
         {
-            *ptr = std::rand();
+            uint16_t descrpt = 0;
+            for (int bit_idx = 0; bit_idx < 2 * 8; bit_idx++)
+            {
+                pixel_1_buf = _image.at<uint8_t>(featPoint.pt + pixel_pairs[pair_idx]);
+                pixel_2_buf = _image.at<uint8_t>(featPoint.pt + pixel_pairs[pair_idx + 1]);
+
+                descrpt |= (pixel_1_buf < pixel_2_buf) << (15 - bit_idx);
+                pair_idx += 2;
+            }
+            *ptr = descrpt;
             ++ptr;
         }
+    }
+}
+
+void corner_detector_fast::gen_pixel_pairs(int diam, int pair_num)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<> distribution(-diam / 2, diam / 2);
+    int x1, y1, x2, y2;
+
+    for (int i = 0; i < pair_num; i++)
+    {
+        x1 = distribution(gen);
+        y1 = distribution(gen);
+        x2 = distribution(gen);
+        y2 = distribution(gen);
+
+        pixel_pairs.push_back(cv::Point(x1, y1));
+        pixel_pairs.push_back(cv::Point(x2, y2));
     }
 }
 

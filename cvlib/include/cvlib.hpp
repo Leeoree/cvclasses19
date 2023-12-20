@@ -80,6 +80,9 @@ class corner_detector_fast : public cv::Feature2D
 
     int radius = 3;
 
+    std::vector<cv::Point2f> pixel_pairs;
+    void gen_pixel_pairs(int diam, int pair_num);
+
     /// \see Feature2d::getDefaultName
     virtual cv::String getDefaultName() const override
     {
