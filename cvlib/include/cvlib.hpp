@@ -140,7 +140,26 @@ class descriptor_matcher : public cv::DescriptorMatcher
 /// \brief Stitcher for merging images into big one
 class Stitcher
 {
-    /// \todo design and implement
+    public:
+    Stitcher();
+
+    void init(cv::Mat init_image, int ratio = 15);
+
+    void stitch(cv::Mat input_image);
+
+    cv::Mat get_resulting_image(void);
+
+    private:
+    cv::Mat _resulting_image;
+    std::vector<cv::KeyPoint> _resulting_image_corners;
+    cv::Mat _resulting_image_descriptors;
+    cv::Ptr<corner_detector_fast> _corn_detector;
+    descriptor_matcher _descr_matcher;
+
+    public:
+    ~Stitcher()
+    {
+    }
 };
 } // namespace cvlib
 
