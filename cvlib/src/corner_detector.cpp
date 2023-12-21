@@ -169,8 +169,10 @@ void corner_detector_fast::gen_pixel_pairs(int diam, int pair_num)
     }
 }
 
-void corner_detector_fast::detectAndCompute(cv::InputArray, cv::InputArray, std::vector<cv::KeyPoint>&, cv::OutputArray descriptors, bool /*= false*/)
+void corner_detector_fast::detectAndCompute(cv::InputArray image, cv::InputArray mask, std::vector<cv::KeyPoint>& keypoints,
+                                            cv::OutputArray descriptors, bool useProvidedKeypoints /*= false*/)
 {
-    // \todo implement me
+    detect(image, keypoints);
+    compute(image, keypoints, descriptors);
 }
 } // namespace cvlib

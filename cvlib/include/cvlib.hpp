@@ -95,12 +95,12 @@ class descriptor_matcher : public cv::DescriptorMatcher
 {
     public:
     /// \brief ctor
-    descriptor_matcher(float ratio = 1.5) : ratio_(ratio)
+    descriptor_matcher(int ratio = 1.5) : ratio_(ratio)
     {
     }
 
     /// \brief setup ratio threshold for SSD filtering
-    void set_ratio(float r)
+    void set_ratio(int r)
     {
         ratio_ = r;
     }
@@ -132,13 +132,34 @@ class descriptor_matcher : public cv::DescriptorMatcher
     }
 
     private:
-    float ratio_;
+    int ratio_;
+
+    int calc_hamming_distance(uint8_t* desc1, uint8_t* desc2, uint8_t size); // size - descriptors size in bytes
 };
 
 /// \brief Stitcher for merging images into big one
 class Stitcher
 {
-    /// \todo design and implement
+    public:
+    Stitcher();
+
+    void init(cv::Mat init_image, int ratio = 15);
+
+    void stitch(cv::Mat input_image);
+
+    cv::Mat get_resulting_image(void);
+
+    private:
+    cv::Mat _resulting_image;
+    std::vector<cv::KeyPoint> _resulting_image_corners;
+    cv::Mat _resulting_image_descriptors;
+    cv::Ptr<corner_detector_fast> _corn_detector;
+    descriptor_matcher _descr_matcher;
+
+    public:
+    ~Stitcher()
+    {
+    }
 };
 } // namespace cvlib
 
